@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+/* Zero 300ms tap delay on mobile/touch screens & fast interaction */
+button, a, input, select, [role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth compositor rendering & optimized font rendering */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: auto;
+  min-height: 100%;
+  background-color: #f8fafc;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  height: auto;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================================================================
+ * HIGH-PERFORMANCE CLEAN PRINT STYLESHEET
+ * Strictly prints ONLY the authentic Pakistani duplicate bill document.
+ * Hides all website headers, footers, sidebars, buttons, 12 months history, and navigation.
+ * ========================================================================= */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
+  }
+
+  /* Reset document and viewport */
+  html, body, #root {
+    width: 100% !important;
+    min-height: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    overflow: visible !important;
+    position: static !important;
+    display: block !important;
+    font-size: 10pt !important;
+    line-height: 1.35 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 1. HIDE ALL NON-BILL ELEMENTS (Headers, Footers, Main Content, Buttons, Tabs, 12 Months History) */
+  header,
+  footer,
+  main,
+  nav,
+  aside,
+  .print\:hidden,
+  .no-print,
+  button,
+  input,
+  select,
+  a[href],
+  .history-section,
+  #printable-bill .history-section {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* 2. RESET MODAL CONTAINER & OVERLAYS */
+  .fixed,
+  .backdrop-blur-xs,
+  [role="dialog"],
+  .print-modal-wrapper,
+  .overflow-y-auto,
+  .overflow-hidden {
+    position: static !important;
+    display: block !important;
+    overflow: visible !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+
+  /* 3. SHOW AND FORMAT THE BILL VOUCHER AREA */
+  #printable-bill {
+    display: block !important;
+    visibility: visible !important;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: 190mm !important;
+    margin: 0 auto !important;
+    padding: 5mm 6mm !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 2px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    box-sizing: border-box !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  /* 4. BLACK & WHITE FRIENDLY STYLING (Crisp, High-Contrast & Readable) */
+  #printable-bill * {
+    color: #000000 !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+  }
+
+  #printable-bill .bg-slate-50,
+  #printable-bill .bg-slate-100,
+  #printable-bill .bg-slate-200,
+  #printable-bill .bg-slate-800,
+  #printable-bill .bg-emerald-50,
+  #printable-bill .bg-amber-50 {
+    background-color: transparent !important;
+  }
+
+  /* Total Payable box becomes high-contrast white with strong black border */
+  #printable-bill .bg-slate-900 {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border: 2px solid #000000 !important;
+    border-radius: 0 !important;
+  }
+
+  /* High contrast solid borders on table and divisions */
+  #printable-bill .border,
+  #printable-bill .border-b,
+  #printable-bill .border-t,
+  #printable-bill .border-y,
+  #printable-bill table,
+  #printable-bill th,
+  #printable-bill td {
+    border-color: #000000 !important;
+    border-style: solid !important;
+  }
+
+  /* Barcode bars printed in solid pitch black */
+  #printable-bill .barcode-bar {
+    background-color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Avoid cutting key blocks */
+  #printable-bill .page-break-avoid,
+  #printable-bill .border {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}

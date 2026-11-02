@@ -1,0 +1,6 @@
+{
+  "name": "PakBill - Online Electricity, Gas & WASA Bill Checker",
+  "description": "Check and download duplicate online bills for MEPCO, LESCO, FESCO, GEPCO, PESCO, IESCO, HESCO, SEPCO, QESCO, TESCO, K-Electric, SNGPL, SSGC, PTCL, and WASA. Connect widget to any website.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

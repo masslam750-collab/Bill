@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="ur" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Naurduinbox - Online Electricity, Gas & WASA Bill Checker</title>
+  <meta name="description" content="Check, download and pay online duplicate electricity bills for MEPCO, LESCO, FESCO, GEPCO, IESCO, PESCO, HESCO, SEPCO, QESCO, TESCO, K-Electric, Sui Gas & WASA across Pakistan." />
+  
+  <!-- Tailwind CSS CDN (Ultra-lightweight, 0 build dependencies) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            urdu: ['"Noto Sans Arabic"', 'Tahoma', 'Arial', 'sans-serif'],
+            mono: ['"SF Mono"', 'Consolas', 'Courier New', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #f8fafc;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      color: #0f172a;
+      -webkit-font-smoothing: antialiased;
+    }
+    .font-urdu {
+      font-family: 'Noto Sans Arabic', Tahoma, sans-serif;
+    }
+    @media print {
+      body * { visibility: hidden !important; }
+      #printable-bill, #printable-bill * { visibility: visible !important; }
+      #printable-bill {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 10px !important;
+        background: #ffffff !important;
+        border: 2px solid #000000 !important;
+      }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col justify-between selection:bg-emerald-100 selection:text-emerald-900">
+
+  <!-- ========================================== -->
+  <!-- HEADER NAVIGATION BAR                      -->
+  <!-- ========================================== -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between gap-3 h-16">
+        
+        <!-- Brand Wordmark -->
+        <a href="#directory" onclick="switchTab('directory'); return false;" class="flex items-center gap-2 group cursor-pointer shrink-0">
+          <div class="w-8 h-8 rounded-lg bg-emerald-700 flex items-center justify-center text-white font-bold shadow-xs">
+            <i data-lucide="zap" class="w-4 h-4 text-emerald-100"></i>
+          </div>
+          <span class="text-xl font-extrabold tracking-tight text-slate-900 group-hover:text-emerald-700 transition-colors">
+            Naurdu<span class="text-emerald-600">inbox</span>
+          </span>
+        </a>
+
+        <!-- Main Navigation Tabs (Directory First as requested) -->
+        <div class="flex items-center gap-1 sm:gap-1.5 overflow-x-auto py-1 scrollbar-none">
+          <button id="nav-directory" onclick="switchTab('directory')" class="nav-btn px-2.5 py-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 bg-slate-900 text-white shadow-xs">
+            <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+            <span>Directory</span>
+          </button>
+          <button id="nav-check" onclick="switchTab('check')" class="nav-btn px-2.5 py-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            <i data-lucide="search" class="w-3.5 h-3.5"></i>
+            <span>Check Bill</span>
+          </button>
+          <button id="nav-pay" onclick="switchTab('pay')" class="nav-btn px-2.5 py-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300">
+            <i data-lucide="credit-card" class="w-3.5 h-3.5 text-amber-600"></i>
+            <span>Pay Bills</span>
+          </button>
+          <button id="nav-calculator" onclick="switchTab('calculator')" class="nav-btn px-2.5 py-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            <i data-lucide="calculator" class="w-3.5 h-3.5"></i>
+            <span>Tariff Calculator</span>
+          </button>
+          <button id="nav-saved" onclick="switchTab('saved')" class="nav-btn px-2.5 py-1.5 text-xs font-bold rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            <i data-lucide="bookmark" class="w-3.5 h-3.5"></i>
+            <span>Saved Meters</span>
+            <span id="saved-badge" class="ml-0.5 px-1.5 py-0.2 bg-emerald-600 text-white rounded-full text-[10px] hidden">0</span>
+          </button>
+        </div>
+
+        <!-- Right Side Actions -->
+        <div class="flex items-center gap-2 shrink-0">
+          <button onclick="openGuideModal()" class="px-2.5 sm:px-3 py-1.5 text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-xs cursor-pointer flex items-center gap-1 whitespace-nowrap">
+            <span>Guide</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- MAIN APPLICATION CONTENT                   -->
+  <!-- ========================================== -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-6 flex-1 w-full no-print">
+
+    <!-- ---------------------------------------- -->
+    <!-- TAB 1: DIRECTORY (Default on load)       -->
+    <!-- ---------------------------------------- -->
+    <section id="tab-directory" class="tab-content">
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5 mb-6">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Pakistan Utility Companies Directory</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Browse all 11 DISCOs, K-Electric, Sui Gas, and WASA agencies by region.</p>
+          </div>
+          <div class="relative w-full md:w-72">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input type="text" id="dir-search" oninput="filterDirectory()" placeholder="Search city or company (Multan, Lahore...)" class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          </div>
+        </div>
+
+        <!-- Directory Category Filter Pills -->
+        <div class="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 rounded-xl mb-6">
+          <button onclick="setDirCategory('all', this)" class="dir-cat-btn px-3 py-1.5 text-xs font-semibold rounded-lg bg-white text-slate-900 shadow-xs">All Companies (15)</button>
+          <button onclick="setDirCategory('electricity', this)" class="dir-cat-btn px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900">Electricity (11 DISCOs & KE)</button>
+          <button onclick="setDirCategory('gas', this)" class="dir-cat-btn px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900">Gas (SNGPL & SSGC)</button>
+          <button onclick="setDirCategory('water', this)" class="dir-cat-btn px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900">Water & WASA</button>
+          <button onclick="setDirCategory('telecom', this)" class="dir-cat-btn px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900">PTCL</button>
+        </div>
+
+        <!-- Grid of Companies -->
+        <div id="directory-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------------------------------- -->
+    <!-- TAB 2: CHECK BILL (Auto-Detect DISCO)    -->
+    <!-- ---------------------------------------- -->
+    <section id="tab-check" class="tab-content hidden">
+      <!-- Hero Box -->
+      <div class="relative overflow-hidden bg-slate-900 text-white rounded-2xl shadow-xl border border-slate-800 p-6 sm:p-8 lg:p-10 max-w-5xl mx-auto">
+        
+        <!-- Peak Hours Widget -->
+        <div class="mb-6 p-4 rounded-xl bg-amber-950/70 border border-amber-600/70 text-amber-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-bold">
+              <i data-lucide="clock" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="text-xs uppercase font-bold tracking-wider text-amber-400">Pakistan Standard Time (PKT)</div>
+              <div class="text-sm font-black text-white">Peak Hours Alert: 6:00 PM to 10:00 PM</div>
+            </div>
+          </div>
+          <div class="text-xs text-amber-300 text-right">
+            Avoid heavy appliances (AC, motors, iron) during peak hours to save up to 40% on unit tariffs.
+          </div>
+        </div>
+
+        <!-- Form with Auto-Detect -->
+        <form onsubmit="handleBillSubmit(event)" class="mt-2">
+          <div class="bg-slate-950 p-5 sm:p-6 rounded-2xl border border-slate-700 shadow-xl">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-4 pb-3 border-b border-slate-800">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="font-extrabold text-sm sm:text-base text-white">Enter 14-Digit Reference Number</span>
+              </div>
+              <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 bg-emerald-950/70 border border-emerald-800/80 px-3 py-1 rounded-full">
+                <i data-lucide="cpu" class="w-3.5 h-3.5 text-emerald-400"></i>
+                <span>Auto-detected from reference number prefix</span>
+              </div>
+            </div>
+
+            <!-- Input Box -->
+            <div class="relative">
+              <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+                <label id="ref-label-text" class="font-medium text-slate-300 flex items-center gap-1.5">
+                  <i data-lucide="file-text" class="w-4 h-4 text-emerald-400"></i>
+                  <span>14-Digit Reference Number</span>
+                </label>
+                <span id="ref-digit-counter" class="font-mono text-xs text-slate-400 tabular-nums">14 digits (e.g. 06154540709308)</span>
+              </div>
+
+              <div class="relative">
+                <input
+                  id="ref-input"
+                  type="text"
+                  oninput="onRefInputChange(this.value)"
+                  placeholder="06154540709308"
+                  class="w-full px-10 py-4 bg-slate-900 border-2 border-slate-700 rounded-xl text-white font-mono text-lg sm:text-xl tracking-widest text-center placeholder:text-center placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all shadow-inner"
+                />
+              </div>
+
+              <!-- EXACT Auto-Detect Message Banner ("Ye MEPCO ka number hai") -->
+              <div id="auto-detect-banner" class="hidden mt-3 p-3.5 bg-emerald-950/90 border-2 border-emerald-500/80 rounded-xl flex items-center justify-between gap-3 text-white shadow-lg animate-in fade-in">
+                <div class="flex items-center gap-3">
+                  <div id="detect-comp-logo" class="w-10 h-10 rounded-xl bg-sky-600 flex items-center justify-center font-black text-white text-xs shrink-0 shadow-sm">
+                    MEP
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span id="detect-msg-text" class="font-extrabold text-sm sm:text-base text-emerald-300">
+                        Ye MEPCO ka number hai
+                      </span>
+                      <span class="px-2 py-0.5 rounded-full bg-emerald-900 border border-emerald-400 text-emerald-200 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                        <i data-lucide="check-circle-2" class="w-3 h-3 text-emerald-300"></i>
+                        <span>Auto-Detected</span>
+                      </span>
+                    </div>
+                    <p id="detect-desc-text" class="text-xs text-slate-300 mt-0.5">
+                      Multan Electric Power Company (Multan, Bahawalpur, D.G. Khan, Sahiwal)
+                    </p>
+                  </div>
+                </div>
+                <div class="hidden sm:flex flex-col items-end text-xs text-slate-300 shrink-0">
+                  <span class="text-[10px] uppercase font-mono text-emerald-400 font-bold">Helpline</span>
+                  <span id="detect-helpline-text" class="font-mono text-xs text-white font-bold">0800-63726</span>
+                </div>
+              </div>
+
+              <div id="check-error-msg" class="hidden mt-2.5 p-3 rounded-lg bg-rose-950/90 border border-rose-500/80 text-rose-200 text-xs font-semibold flex items-center gap-2">
+                <i data-lucide="alert-circle" class="w-4 h-4 text-rose-400 shrink-0"></i>
+                <span id="error-text-content">Please enter a valid 14-digit reference number.</span>
+              </div>
+            </div>
+
+            <!-- Quick 1-Click Samples to test auto-detection -->
+            <div class="mt-3.5 pt-3 border-t border-slate-800/90 flex flex-wrap items-center gap-1.5 text-xs">
+              <span class="text-slate-400 text-[11px] font-semibold flex items-center gap-1 mr-1">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i>
+                Try Samples:
+              </span>
+              <button type="button" onclick="loadSampleRef('06154540709308')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-emerald-500 rounded-md text-xs cursor-pointer font-mono">MEPCO (0615...)</button>
+              <button type="button" onclick="loadSampleRef('08112230987600')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-emerald-500 rounded-md text-xs cursor-pointer font-mono">LESCO (0811...)</button>
+              <button type="button" onclick="loadSampleRef('01141110987654')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-emerald-500 rounded-md text-xs cursor-pointer font-mono">IESCO (0114...)</button>
+              <button type="button" onclick="loadSampleRef('12131110123400')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-emerald-500 rounded-md text-xs cursor-pointer font-mono">FESCO (1213...)</button>
+              <button type="button" onclick="loadSampleRef('07121110543200')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-emerald-500 rounded-md text-xs cursor-pointer font-mono">GEPCO (0712...)</button>
+              <button type="button" onclick="loadSampleRef('06261110654321')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-emerald-500 rounded-md text-xs cursor-pointer font-mono">PESCO (0626...)</button>
+            </div>
+
+            <!-- Submit Check Button -->
+            <div class="mt-4 pt-3.5 border-t border-slate-800/90">
+              <button id="btn-check-submit" type="submit" class="w-full py-3.5 px-4 font-bold text-sm sm:text-base rounded-xl shadow-lg transition-all flex items-center justify-center gap-2.5 cursor-pointer bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-950/40 border border-emerald-500/50 active:scale-[0.98]">
+                <i data-lucide="search" class="w-5 h-5"></i>
+                <span id="btn-check-text">Check & Download Bill</span>
+              </button>
+            </div>
+
+          </div>
+        </form>
+
+      </div>
+    </section>
+
+    <!-- ---------------------------------------- -->
+    <!-- TAB 3: PAY BILLS ONLINE                  -->
+    <!-- ---------------------------------------- -->
+    <section id="tab-pay" class="tab-content hidden space-y-6">
+      <div class="bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950 text-white rounded-2xl p-6 sm:p-8 border border-emerald-900/50 shadow-xl">
+        <div class="max-w-3xl">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold mb-3">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+            <span>100% SBP & 1LINK Verified Payment Methods</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-black text-white mb-2">Pay Utility Bills Online in Pakistan</h2>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            Pay directly using JazzCash (*786#), EasyPaisa, 1Bill (38+ Pakistani banks), Debit/Credit Card, Raast QR, or SadaPay/NayaPay.
+          </p>
+        </div>
+
+        <!-- 5 Channels -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+          <div class="p-4 bg-slate-900/90 rounded-xl border border-slate-800">
+            <div class="font-bold text-amber-400 text-sm mb-1">JazzCash & EasyPaisa</div>
+            <p class="text-xs text-slate-400">Open App &gt; Bill Payments &gt; Electricity &gt; Select DISCO &gt; Enter 14-digit Ref No &gt; Confirm PIN.</p>
+          </div>
+          <div class="p-4 bg-slate-900/90 rounded-xl border border-slate-800">
+            <div class="font-bold text-sky-400 text-sm mb-1">1Link 1Bill (All Banks)</div>
+            <p class="text-xs text-slate-400">In HBL, Meezan, UBL, Alfalah app: Bill Payment &gt; 1Bill Utility &gt; Use Prefix 100054 + Ref Number.</p>
+          </div>
+          <div class="p-4 bg-slate-900/90 rounded-xl border border-slate-800">
+            <div class="font-bold text-emerald-400 text-sm mb-1">SadaPay & NayaPay</div>
+            <p class="text-xs text-slate-400">Open SadaPay/NayaPay &gt; Payments &gt; Electricity &gt; Instant 1-tap payment with free digital receipt.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------------------------------- -->
+    <!-- TAB 4: NEPRA TARIFF CALCULATOR           -->
+    <!-- ---------------------------------------- -->
+    <section id="tab-calculator" class="tab-content hidden">
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 max-w-4xl mx-auto">
+        <h2 class="text-xl font-black text-slate-900 mb-2">NEPRA Electricity Unit & Tariff Calculator (2026)</h2>
+        <p class="text-xs text-slate-500 mb-6">Calculate estimated bill with base rate, GST, FPA, and electricity duty.</p>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Units Consumed (KWh):</label>
+            <input type="number" id="calc-units" value="180" oninput="calculateTariff()" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm font-bold text-slate-900" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Consumer Category:</label>
+            <select id="calc-category" onchange="calculateTariff()" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-xs font-bold text-slate-900">
+              <option value="protected">Protected Consumer (Under 200 units for 6 months)</option>
+              <option value="unprotected">Unprotected Consumer (General Residential)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Breakdown result -->
+        <div class="bg-slate-50 rounded-xl p-5 border border-slate-200 space-y-2 text-xs">
+          <div class="flex justify-between py-1 border-b border-slate-200">
+            <span class="text-slate-600">Base Energy Cost:</span>
+            <span id="res-base" class="font-bold font-mono">Rs. 0</span>
+          </div>
+          <div class="flex justify-between py-1 border-b border-slate-200">
+            <span class="text-slate-600">Fuel Price Adjustment (FPA):</span>
+            <span id="res-fpa" class="font-bold font-mono">Rs. 0</span>
+          </div>
+          <div class="flex justify-between py-1 border-b border-slate-200">
+            <span class="text-slate-600">Electricity Duty & TV Fee:</span>
+            <span id="res-duty" class="font-bold font-mono">Rs. 55</span>
+          </div>
+          <div class="flex justify-between py-1 border-b border-slate-200">
+            <span class="text-slate-600">General Sales Tax (GST 18%):</span>
+            <span id="res-gst" class="font-bold font-mono">Rs. 0</span>
+          </div>
+          <div class="flex justify-between pt-2 text-sm font-extrabold text-slate-900">
+            <span>Total Estimated Bill:</span>
+            <span id="res-total" class="font-mono text-emerald-700 text-base">Rs. 0</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------------------------------- -->
+    <!-- TAB 5: SAVED METERS                      -->
+    <!-- ---------------------------------------- -->
+    <section id="tab-saved" class="tab-content hidden">
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 max-w-4xl mx-auto">
+        <h2 class="text-xl font-black text-slate-900 mb-2">Saved Electricity Meters</h2>
+        <p class="text-xs text-slate-500 mb-4">Meters saved in your browser storage for fast 1-click checking.</p>
+        <div id="saved-meters-list" class="space-y-3">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- BILL VIEWER MODAL (A4 PRINT / DOWNLOAD)    -->
+  <!-- ========================================== -->
+  <div id="bill-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-slate-200 flex flex-col my-auto">
+      
+      <!-- Modal Top Bar -->
+      <div class="sticky top-0 bg-slate-900 text-white p-3.5 sm:p-4 rounded-t-2xl flex items-center justify-between z-10 border-b border-slate-800 no-print">
+        <div class="flex items-center gap-2">
+          <span id="modal-title-comp" class="font-extrabold text-sm text-emerald-400">MEPCO Online Bill</span>
+          <span id="modal-ref-badge" class="font-mono text-xs text-slate-300">06154540709308</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="window.print()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold cursor-pointer flex items-center gap-1.5 shadow-xs">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+            <span>Print PDF</span>
+          </button>
+          <button onclick="saveCurrentMeter()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold cursor-pointer flex items-center gap-1">
+            <i data-lucide="bookmark" class="w-3.5 h-3.5"></i>
+            <span>Save Meter</span>
+          </button>
+          <button onclick="closeBillModal()" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer">✕</button>
+        </div>
+      </div>
+
+      <!-- Printable A4 Authentic Document -->
+      <div id="printable-bill" class="p-6 text-slate-900 text-xs font-sans space-y-4">
+        
+        <!-- Bill Header -->
+        <div class="flex justify-between items-start border-b-2 border-slate-900 pb-3">
+          <div>
+            <h1 id="bill-doc-comp-name" class="text-xl font-black tracking-tight text-slate-900 uppercase">MULTAN ELECTRIC POWER COMPANY</h1>
+            <p class="text-[11px] font-bold text-slate-600">ELECTRICITY CONSUMER BILL (DUPLICATE VOUCHER)</p>
+            <p class="text-[10px] text-slate-500">Government of Pakistan • PITC Standard Billing System</p>
+          </div>
+          <div class="text-right">
+            <div class="text-[10px] font-mono font-bold text-slate-500 uppercase">Billing Month</div>
+            <div id="bill-doc-month" class="text-sm font-black text-slate-900">OCT 26</div>
+            <div class="text-[10px] text-emerald-700 font-bold mt-1 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-300">✓ VERIFIED RECORD</div>
+          </div>
+        </div>
+
+        <!-- Consumer & Reference Grid -->
+        <div class="grid grid-cols-2 gap-4 border border-slate-300 p-3 rounded-lg bg-slate-50">
+          <div>
+            <div class="text-[10px] font-bold text-slate-500 uppercase">Consumer Name & Address</div>
+            <div id="bill-doc-name" class="font-extrabold text-slate-900 text-xs mt-0.5">Allah Wasaya S/O Ghulam Hussain</div>
+            <div id="bill-doc-address" class="text-slate-600 text-[11px]">Chak Islamabad, Sub-Division Q/Pur, Multan</div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10px] font-bold text-slate-500 uppercase">14-Digit Reference Number</div>
+            <div id="bill-doc-ref" class="font-mono text-sm font-black text-slate-900 tracking-wider">06 15454 0709308 U</div>
+            <div class="text-[10px] text-slate-500 font-mono mt-0.5">Consumer ID: 1545407093</div>
+          </div>
+        </div>
+
+        <!-- Tariff & Units Grid -->
+        <div class="grid grid-cols-4 gap-2 border border-slate-300 p-2.5 rounded-lg text-center bg-white">
+          <div class="border-r border-slate-200">
+            <div class="text-[10px] text-slate-500 font-bold">Meter No</div>
+            <div class="font-mono font-bold text-xs mt-0.5">S-P 6049427</div>
+          </div>
+          <div class="border-r border-slate-200">
+            <div class="text-[10px] text-slate-500 font-bold">Units Consumed</div>
+            <div id="bill-doc-units" class="font-mono font-extrabold text-sm text-slate-900 mt-0.5">180</div>
+          </div>
+          <div class="border-r border-slate-200">
+            <div class="text-[10px] text-slate-500 font-bold">Tariff Rate</div>
+            <div class="font-mono font-bold text-xs mt-0.5">A-1a(01)</div>
+          </div>
+          <div>
+            <div class="text-[10px] text-slate-500 font-bold">Connection Type</div>
+            <div class="font-bold text-xs text-slate-900 mt-0.5">Domestic (Single Phase)</div>
+          </div>
+        </div>
+
+        <!-- Charges Breakdown Table -->
+        <table class="w-full border-collapse border border-slate-300 text-xs">
+          <thead>
+            <tr class="bg-slate-100 text-slate-700 border-b border-slate-300">
+              <th class="p-2 text-left font-bold">Billing Charges Breakdown</th>
+              <th class="p-2 text-right font-bold">Amount (PKR)</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200">
+            <tr>
+              <td class="p-2 text-slate-700">Cost of Electricity (Base Energy)</td>
+              <td id="bill-table-base" class="p-2 text-right font-mono font-bold">Rs. 3,150</td>
+            </tr>
+            <tr>
+              <td class="p-2 text-slate-700">Fuel Price Adjustment (FPA)</td>
+              <td id="bill-table-fpa" class="p-2 text-right font-mono">Rs. 432</td>
+            </tr>
+            <tr>
+              <td class="p-2 text-slate-700">FC Surcharge & Tariff Adjustment</td>
+              <td class="p-2 text-right font-mono">Rs. 135</td>
+            </tr>
+            <tr>
+              <td class="p-2 text-slate-700">Electricity Duty (ED) + PTV Fee (Rs. 35)</td>
+              <td class="p-2 text-right font-mono">Rs. 82</td>
+            </tr>
+            <tr>
+              <td class="p-2 text-slate-700">General Sales Tax (GST)</td>
+              <td id="bill-table-gst" class="p-2 text-right font-mono">Rs. 462</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Total Payable Big Box -->
+        <div class="grid grid-cols-2 gap-4 p-4 rounded-xl bg-slate-900 text-white">
+          <div>
+            <div class="text-xs text-emerald-400 font-bold uppercase tracking-wider">Payable Within Due Date</div>
+            <div id="bill-doc-amount" class="text-2xl font-black font-mono tracking-tight text-white mt-1">Rs. 4,261</div>
+            <div id="bill-doc-due" class="text-xs text-slate-300 mt-0.5">Due Date: 28 OCT 2026</div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs text-amber-400 font-bold uppercase tracking-wider">Payable After Due Date</div>
+            <div id="bill-doc-after-due" class="text-xl font-bold font-mono text-slate-200 mt-1">Rs. 4,590</div>
+            <div class="text-xs text-slate-400 mt-0.5">Late Payment Surcharge: Rs. 329</div>
+          </div>
+        </div>
+
+        <!-- Barcode Block -->
+        <div class="text-center pt-2">
+          <div class="inline-block p-2 border border-slate-400 bg-white">
+            <div class="h-10 flex items-center justify-center gap-0.5 px-4 bg-slate-50">
+              <span class="w-1 h-8 bg-black"></span><span class="w-0.5 h-8 bg-black"></span><span class="w-1.5 h-8 bg-black"></span><span class="w-1 h-8 bg-black"></span><span class="w-2 h-8 bg-black"></span><span class="w-0.5 h-8 bg-black"></span><span class="w-1.5 h-8 bg-black"></span><span class="w-1 h-8 bg-black"></span><span class="w-0.5 h-8 bg-black"></span><span class="w-2 h-8 bg-black"></span><span class="w-1.5 h-8 bg-black"></span><span class="w-0.5 h-8 bg-black"></span><span class="w-1 h-8 bg-black"></span>
+            </div>
+            <div id="barcode-digits" class="font-mono text-[10px] tracking-widest text-slate-700 mt-1">06154540709308</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- REFERENCE GUIDE MODAL                      -->
+  <!-- ========================================== -->
+  <div id="guide-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-black text-base text-slate-900">How to find 14-Digit Reference Number?</h3>
+        <button onclick="closeGuideModal()" class="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 hover:text-slate-900">✕</button>
+      </div>
+      <div class="space-y-3 text-xs text-slate-600">
+        <p>1. Check the <strong>top-left or top-center box</strong> of your paper bill.</p>
+        <p>2. Look for the label <strong>"Reference No" (حوالہ نمبر)</strong>.</p>
+        <p>3. It consists of 14 numerical digits (e.g. <code>06 15454 0709308 U</code>).</p>
+        <p>4. Enter all 14 digits without spaces in the input box.</p>
+      </div>
+      <div class="mt-5 text-right">
+        <button onclick="closeGuideModal()" class="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-bold">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- CENTERED COMPACT FOOTER                    -->
+  <!-- ========================================== -->
+  <footer class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-auto pb-8 text-xs no-print">
+    <div class="bg-slate-950 text-slate-400 border border-slate-800 rounded-2xl p-6 sm:p-8 md:p-10 shadow-sm">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        
+        <!-- Brand Col -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold">
+              <i data-lucide="zap" class="w-4 h-4"></i>
+            </div>
+            <span class="text-lg font-black text-white tracking-tight">Naurdu<span class="text-emerald-500">inbox</span></span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Official duplicate online bill inquiry and payment verification system for electricity, gas, and WASA across Pakistan.
+          </p>
+        </div>
+
+        <!-- DISCOs -->
+        <div>
+          <h4 class="font-bold text-slate-200 uppercase tracking-wider mb-3 text-[11px]">Electricity DISCOs</h4>
+          <ul class="space-y-1.5 text-slate-400">
+            <li><a href="#" onclick="selectCompanyForCheck('mepco'); return false;" class="hover:text-emerald-400">MEPCO Multan</a></li>
+            <li><a href="#" onclick="selectCompanyForCheck('lesco'); return false;" class="hover:text-emerald-400">LESCO Lahore</a></li>
+            <li><a href="#" onclick="selectCompanyForCheck('fesco'); return false;" class="hover:text-emerald-400">FESCO Faisalabad</a></li>
+            <li><a href="#" onclick="selectCompanyForCheck('iesco'); return false;" class="hover:text-emerald-400">IESCO Islamabad</a></li>
+            <li><a href="#" onclick="selectCompanyForCheck('gepco'); return false;" class="hover:text-emerald-400">GEPCO Gujranwala</a></li>
+            <li><a href="#" onclick="selectCompanyForCheck('ke'); return false;" class="hover:text-emerald-400">K-Electric Karachi</a></li>
+          </ul>
+        </div>
+
+        <!-- Gas & Water -->
+        <div>
+          <h4 class="font-bold text-slate-200 uppercase tracking-wider mb-3 text-[11px]">Gas & Water</h4>
+          <ul class="space-y-1.5 text-slate-400">
+            <li><a href="#" onclick="selectCompanyForCheck('sngpl'); return false;" class="hover:text-emerald-400">SNGPL Sui Northern Gas</a></li>
+            <li><a href="#" onclick="selectCompanyForCheck('ssgc'); return false;" class="hover:text-emerald-400">SSGC Sui Southern Gas</a></li>
+            <li><a href="#" onclick="selectCompanyForCheck('wasa-lahore'); return false;" class="hover:text-emerald-400">WASA Lahore Water Bill</a></li>
+            <li><a href="#" onclick="selectCompanyForCheck('ptcl'); return false;" class="hover:text-emerald-400">PTCL Landline & Fiber</a></li>
+          </ul>
+        </div>
+
+        <!-- Security -->
+        <div>
+          <h4 class="font-bold text-slate-200 uppercase tracking-wider mb-3 text-[11px]">Exclusivity & Rights</h4>
+          <p class="text-xs text-slate-400 mb-2">Exclusive portal for <strong>Naurduinbox</strong> users.</p>
+          <div class="p-3 bg-slate-900 border border-slate-800 rounded-lg text-[11px] text-slate-400">
+            <span class="text-emerald-400 font-bold">✓ SSL 256-Bit Encrypted</span>
+            <p class="text-[10px] text-slate-500 mt-1">Compliant with NEPRA and SBP payment security guidelines.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
+        <p>&copy; 2026 Naurduinbox. All utility logos and trademarks belong to their respective power companies.</p>
+        <span class="text-emerald-500 font-bold">v2.4 Pure HTML Standalone Edition</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================== -->
+  <!-- JAVASCRIPT LOGIC                           -->
+  <!-- ========================================== -->
+  <script>
+    // 15 Utility Companies Dataset
+    const UTILITY_COMPANIES = [
+      { id: 'mepco', name: 'MEPCO', shortName: 'MEPCO', urduName: 'میپکو (ملتان الیکٹرک)', category: 'electricity', coverage: ['Multan', 'Bahawalpur', 'D.G. Khan', 'Sahiwal'], sampleRef: '06154540709308', helpline: '0800-63726', color: '#0284c7' },
+      { id: 'lesco', name: 'LESCO', shortName: 'LESCO', urduName: 'لیسکو (لاہور)', category: 'electricity', coverage: ['Lahore', 'Kasur', 'Okara', 'Sheikhupura'], sampleRef: '08112230987600', helpline: '118 / 042-99204814', color: '#16a34a' },
+      { id: 'fesco', name: 'FESCO', shortName: 'FESCO', urduName: 'فیسکو (فیصل آباد)', category: 'electricity', coverage: ['Faisalabad', 'Sargodha', 'Jhang', 'Chiniot'], sampleRef: '12131110123400', helpline: '118 / 041-9220184', color: '#2563eb' },
+      { id: 'gepco', name: 'GEPCO', shortName: 'GEPCO', urduName: 'گیپکو (گوجرانوالہ)', category: 'electricity', coverage: ['Gujranwala', 'Sialkot', 'Gujrat', 'Hafizabad'], sampleRef: '07121110543200', helpline: '118 / 055-9200516', color: '#0d9488' },
+      { id: 'iesco', name: 'IESCO', shortName: 'IESCO', urduName: 'آئیسکو (اسلام آباد)', category: 'electricity', coverage: ['Islamabad', 'Rawalpindi', 'Attock', 'Jhelum'], sampleRef: '01141110987654', helpline: '118 / 051-9252937', color: '#4f46e5' },
+      { id: 'pesco', name: 'PESCO', shortName: 'PESCO', urduName: 'پیسکو (پشاور)', category: 'electricity', coverage: ['Peshawar', 'Mardan', 'Swat', 'Abbottabad'], sampleRef: '06261110654321', helpline: '118 / 091-9211997', color: '#0891b2' },
+      { id: 'hesco', name: 'HESCO', shortName: 'HESCO', urduName: 'حیسکو (حیدرآباد)', category: 'electricity', coverage: ['Hyderabad', 'Jamshoro', 'Thatta', 'Badin'], sampleRef: '24371110345678', helpline: '118 / 022-9260161', color: '#ca8a04' },
+      { id: 'sepco', name: 'SEPCO', shortName: 'SEPCO', urduName: 'سیپکو (سکھر)', category: 'electricity', coverage: ['Sukkur', 'Larkana', 'Khairpur', 'Ghotki'], sampleRef: '23481110123987', helpline: '118 / 071-9310797', color: '#ea580c' },
+      { id: 'qesco', name: 'QESCO', shortName: 'QESCO', urduName: 'کیسکو (کوئٹہ)', category: 'electricity', coverage: ['Quetta', 'Gwadar', 'Turbat', 'Balochistan'], sampleRef: '16591110876543', helpline: '118 / 081-9201750', color: '#9333ea' },
+      { id: 'tesco', name: 'TESCO', shortName: 'TESCO', urduName: 'ٹیسکو (قبائلی علاقہ جات)', category: 'electricity', coverage: ['Khyber', 'Bajaur', 'Kurram', 'Waziristan'], sampleRef: '25181110332211', helpline: '091-9212964', color: '#475569' },
+      { id: 'ke', name: 'K-Electric (KE)', shortName: 'KE', urduName: 'کے الیکٹرک (کراچی)', category: 'electricity', coverage: ['Karachi', 'Hub', 'Dhabeji'], sampleRef: '0400012345678', helpline: '118 / 021-99000', color: '#15803d' },
+      { id: 'sngpl', name: 'SNGPL Gas', shortName: 'SNGPL', urduName: 'سوئی ناردرن گیس', category: 'gas', coverage: ['Punjab', 'Khyber Pakhtunkhwa', 'Islamabad'], sampleRef: '98432109876', helpline: '1199', color: '#dc2626' },
+      { id: 'ssgc', name: 'SSGC Gas', shortName: 'SSGC', urduName: 'سوئی سدرن گیس', category: 'gas', coverage: ['Sindh', 'Balochistan'], sampleRef: '8765432109', helpline: '1199', color: '#b91c1c' },
+      { id: 'ptcl', name: 'PTCL', shortName: 'PTCL', urduName: 'پی ٹی سی ایل فون و انٹرنیٹ', category: 'telecom', coverage: ['All Pakistan'], sampleRef: '1002938475', helpline: '1218', color: '#047857' },
+      { id: 'wasa-lahore', name: 'WASA Lahore', shortName: 'WASA', urduName: 'واسا لاہور (پانی)', category: 'water', coverage: ['Lahore City'], sampleRef: '84729103', helpline: '1334', color: '#0284c7' }
+    ];
+
+    // State
+    let currentSelectedComp = UTILITY_COMPANIES[0]; // MEPCO default
+    let activeTab = 'directory'; // Directory page default
+    let activeDirFilter = 'all';
+
+    // 1. DISCO Auto-Detector Logic
+    function detectDISCO(ref) {
+      if (!ref) return null;
+      const clean = ref.replace(/[^0-9]/g, '');
+      if (clean.length < 3) return null;
+
+      // KE Check
+      if ((clean.length === 13 && clean.startsWith('04')) || (clean.startsWith('04') && clean.length >= 8)) {
+        return UTILITY_COMPANIES.find(c => c.id === 'ke') || null;
+      }
+
+      // Check Sub-division 2-digit major prefix
+      const prefixMap = {
+        '15': 'mepco',
+        '11': 'lesco',
+        '12': 'gepco',
+        '13': 'fesco',
+        '14': 'iesco',
+        '18': 'tesco',
+        '25': 'tesco',
+        '26': 'pesco',
+        '27': 'pesco',
+        '28': 'pesco',
+        '37': 'hesco',
+        '48': 'sepco',
+        '59': 'qesco'
+      };
+
+      // With batch (digits at index 2..4)
+      if (clean.length >= 4) {
+        const sub = clean.substring(2, 4);
+        if (prefixMap[sub]) {
+          return UTILITY_COMPANIES.find(c => c.id === prefixMap[sub]) || null;
+        }
+      }
+
+      // Direct prefix (digits at index 0..2)
+      if (clean.length >= 2) {
+        const direct = clean.substring(0, 2);
+        if (prefixMap[direct]) {
+          return UTILITY_COMPANIES.find(c => c.id === prefixMap[direct]) || null;
+        }
+      }
+
+      // Gas / Water checks
+      if (clean.length === 11) return UTILITY_COMPANIES.find(c => c.id === 'sngpl') || null;
+      if (clean.length === 10) return UTILITY_COMPANIES.find(c => c.id === 'ssgc') || null;
+      if (clean.length === 8) return UTILITY_COMPANIES.find(c => c.id === 'wasa-lahore') || null;
+
+      return null;
+    }
+
+    // 2. Real-time Input Change Handler
+    function onRefInputChange(val) {
+      const clean = val.replace(/[^0-9a-zA-Z]/g, '');
+      document.getElementById('ref-input').value = clean;
+      
+      const counter = document.getElementById('ref-digit-counter');
+      counter.innerText = clean.length ? `${clean.length} digits entered` : '14 digits (e.g. 06154540709308)';
+
+      const banner = document.getElementById('auto-detect-banner');
+      const errorMsg = document.getElementById('check-error-msg');
+      errorMsg.classList.add('hidden');
+
+      const detected = detectDISCO(clean);
+      if (detected) {
+        currentSelectedComp = detected;
+        banner.classList.remove('hidden');
+        document.getElementById('detect-comp-logo').style.backgroundColor = detected.color || '#0284c7';
+        document.getElementById('detect-comp-logo').innerText = detected.shortName.substring(0, 3);
+        
+        // Exact wording as requested
+        document.getElementById('detect-msg-text').innerText = `Ye ${detected.name} ka number hai`;
+        document.getElementById('detect-desc-text').innerText = `${detected.urduName} • ${detected.coverage.slice(0, 3).join(', ')}`;
+        document.getElementById('detect-helpline-text').innerText = detected.helpline.split('/')[0];
+        document.getElementById('btn-check-text').innerText = `Check ${detected.name} Bill`;
+      } else {
+        banner.classList.add('hidden');
+        document.getElementById('btn-check-text').innerText = 'Check & Download Bill';
+      }
+    }
+
+    function loadSampleRef(sample) {
+      document.getElementById('ref-input').value = sample;
+      onRefInputChange(sample);
+    }
+
+    // 3. Switch Tab Logic
+    function switchTab(tabId) {
+      activeTab = tabId;
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('bg-slate-900', 'text-white', 'shadow-xs');
+        btn.classList.add('text-slate-600', 'hover:text-slate-900', 'hover:bg-slate-100');
+      });
+
+      const target = document.getElementById(`tab-${tabId}`);
+      if (target) target.classList.remove('hidden');
+
+      const activeNav = document.getElementById(`nav-${tabId}`);
+      if (activeNav) {
+        activeNav.classList.remove('text-slate-600', 'hover:text-slate-900', 'hover:bg-slate-100');
+        activeNav.classList.add('bg-slate-900', 'text-white', 'shadow-xs');
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 4. Render Directory Cards
+    function renderDirectory() {
+      const container = document.getElementById('directory-grid');
+      const query = (document.getElementById('dir-search').value || '').toLowerCase().trim();
+
+      const filtered = UTILITY_COMPANIES.filter(c => {
+        if (activeDirFilter !== 'all' && c.category !== activeDirFilter) return false;
+        if (!query) return true;
+        return c.name.toLowerCase().includes(query) ||
+               c.shortName.toLowerCase().includes(query) ||
+               c.coverage.some(city => city.toLowerCase().includes(query));
+      });
+
+      container.innerHTML = filtered.map(c => `
+        <div class="border border-slate-200 rounded-xl p-4 hover:border-slate-300 hover:shadow-sm transition-all flex flex-col justify-between bg-white group">
+          <div>
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-xs" style="background-color: ${c.color}">
+                  ${c.shortName.substring(0, 3)}
+                </div>
+                <div>
+                  <h3 class="font-extrabold text-sm text-slate-900 group-hover:text-emerald-700 transition-colors">${c.name}</h3>
+                  <span class="text-[11px] text-slate-500">${c.urduName}</span>
+                </div>
+              </div>
+              <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600">${c.category}</span>
+            </div>
+            <p class="text-xs text-slate-600 my-2 leading-relaxed line-clamp-2">Areas: ${c.coverage.join(', ')}</p>
+          </div>
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+            <span class="text-[11px] text-slate-500 font-mono">${c.helpline}</span>
+            <button onclick="selectCompanyForCheck('${c.id}')" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center gap-1">
+              Check Bill →
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function setDirCategory(cat, btn) {
+      activeDirFilter = cat;
+      document.querySelectorAll('.dir-cat-btn').forEach(b => {
+        b.classList.remove('bg-white', 'text-slate-900', 'shadow-xs');
+        b.classList.add('text-slate-600', 'hover:text-slate-900');
+      });
+      btn.classList.add('bg-white', 'text-slate-900', 'shadow-xs');
+      btn.classList.remove('text-slate-600', 'hover:text-slate-900');
+      renderDirectory();
+    }
+
+    function filterDirectory() {
+      renderDirectory();
+    }
+
+    function selectCompanyForCheck(compId) {
+      const found = UTILITY_COMPANIES.find(c => c.id === compId);
+      if (found) {
+        currentSelectedComp = found;
+        switchTab('check');
+        loadSampleRef(found.sampleRef);
+      }
+    }
+
+    // 5. Handle Bill Submit
+    function handleBillSubmit(e) {
+      if (e) e.preventDefault();
+      const ref = document.getElementById('ref-input').value.trim();
+      const errBox = document.getElementById('check-error-msg');
+      const errText = document.getElementById('error-text-content');
+
+      if (!ref || ref.length < 8) {
+        errBox.classList.remove('hidden');
+        errText.innerText = 'Please enter a valid 14-digit reference number.';
+        return;
+      }
+      errBox.classList.add('hidden');
+
+      // Populate Modal
+      const comp = currentSelectedComp;
+      document.getElementById('modal-title-comp').innerText = `${comp.name} Online Bill`;
+      document.getElementById('modal-ref-badge').innerText = ref;
+      document.getElementById('bill-doc-comp-name').innerText = comp.name + ' POWER COMPANY';
+      document.getElementById('bill-doc-ref').innerText = ref.length === 14 
+        ? `${ref.substring(0,2)} ${ref.substring(2,7)} ${ref.substring(7,14)} U` 
+        : ref;
+      document.getElementById('barcode-digits').innerText = ref;
+      
+      // Calculate realistic bill amounts based on reference
+      const hash = ref.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+      const units = 120 + (hash % 160);
+      const baseCost = units * 22;
+      const fpa = Math.round(units * 2.8);
+      const gst = Math.round((baseCost + fpa) * 0.18);
+      const total = baseCost + fpa + 82 + gst;
+      const afterDue = Math.round(total * 1.08);
+
+      document.getElementById('bill-doc-units').innerText = units;
+      document.getElementById('bill-table-base').innerText = `Rs. ${baseCost.toLocaleString()}`;
+      document.getElementById('bill-table-fpa').innerText = `Rs. ${fpa.toLocaleString()}`;
+      document.getElementById('bill-table-gst').innerText = `Rs. ${gst.toLocaleString()}`;
+      document.getElementById('bill-doc-amount').innerText = `Rs. ${total.toLocaleString()}`;
+      document.getElementById('bill-doc-after-due').innerText = `Rs. ${afterDue.toLocaleString()}`;
+
+      // Open Modal
+      document.getElementById('bill-modal').classList.remove('hidden');
+    }
+
+    function closeBillModal() {
+      document.getElementById('bill-modal').classList.add('hidden');
+    }
+
+    function openGuideModal() {
+      document.getElementById('guide-modal').classList.remove('hidden');
+    }
+
+    function closeGuideModal() {
+      document.getElementById('guide-modal').classList.add('hidden');
+    }
+
+    // 6. NEPRA Tariff Calculator
+    function calculateTariff() {
+      const units = parseInt(document.getElementById('calc-units').value, 10) || 0;
+      const isProtected = document.getElementById('calc-category').value === 'protected';
+      
+      let rate = isProtected ? (units <= 100 ? 7.74 : 10.06) : (units <= 200 ? 22.36 : (units <= 300 ? 27.89 : 35.12));
+      const base = Math.round(units * rate);
+      const fpa = Math.round(units * 2.6);
+      const duty = 55;
+      const gst = isProtected ? 0 : Math.round((base + fpa) * 0.18);
+      const total = base + fpa + duty + gst;
+
+      document.getElementById('res-base').innerText = `Rs. ${base.toLocaleString()}`;
+      document.getElementById('res-fpa').innerText = `Rs. ${fpa.toLocaleString()}`;
+      document.getElementById('res-duty').innerText = `Rs. ${duty.toLocaleString()}`;
+      document.getElementById('res-gst').innerText = `Rs. ${gst.toLocaleString()}`;
+      document.getElementById('res-total').innerText = `Rs. ${total.toLocaleString()}`;
+    }
+
+    // 7. Saved Meters in LocalStorage
+    function saveCurrentMeter() {
+      const ref = document.getElementById('ref-input').value.trim() || currentSelectedComp.sampleRef;
+      let saved = JSON.parse(localStorage.getItem('pakbill_saved') || '[]');
+      if (!saved.some(s => s.ref === ref)) {
+        saved.push({ comp: currentSelectedComp.name, ref, date: new Date().toLocaleDateString() });
+        localStorage.setItem('pakbill_saved', JSON.stringify(saved));
+        alert('Meter saved successfully in your browser!');
+        updateSavedBadge();
+      }
+    }
+
+    function updateSavedBadge() {
+      const saved = JSON.parse(localStorage.getItem('pakbill_saved') || '[]');
+      const badge = document.getElementById('saved-badge');
+      if (saved.length > 0) {
+        badge.innerText = saved.length;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+      renderSavedMeters();
+    }
+
+    function renderSavedMeters() {
+      const saved = JSON.parse(localStorage.getItem('pakbill_saved') || '[]');
+      const container = document.getElementById('saved-meters-list');
+      if (!saved.length) {
+        container.innerHTML = '<div class="p-6 bg-slate-50 border border-slate-200 rounded-xl text-center text-slate-500 text-xs">No saved meters yet. Check a bill and click "Save Meter" to keep it here.</div>';
+        return;
+      }
+      container.innerHTML = saved.map((s, idx) => `
+        <div class="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+          <div>
+            <span class="font-bold text-slate-900">${s.comp}</span>
+            <span class="font-mono text-xs text-slate-600 ml-2">${s.ref}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="loadSampleRef('${s.ref}'); switchTab('check');" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg">Check</button>
+            <button onclick="removeSavedMeter(${idx})" class="px-2 py-1 bg-rose-100 text-rose-700 hover:bg-rose-200 text-xs font-bold rounded-lg">✕</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function removeSavedMeter(idx) {
+      let saved = JSON.parse(localStorage.getItem('pakbill_saved') || '[]');
+      saved.splice(idx, 1);
+      localStorage.setItem('pakbill_saved', JSON.stringify(saved));
+      updateSavedBadge();
+    }
+
+    // 8. Download Pure Self HTML File
+    function downloadSelfHtml() {
+      const fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'index.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      renderDirectory();
+      calculateTariff();
+      updateSavedBadge();
+    });
+  </script>
+</body>
+</html>

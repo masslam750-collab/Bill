@@ -1,24 +1,29 @@
 name: Direct Deploy to Bill Folder
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-      - name: Build Website
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+      
+      - name: Install and Build
         run: |
           bun install
           bun run build
-      - name: Deploy to InfinityFree
+          
+      - name: Deploy to InfinityFree via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./dist/
-          server-dir: htdocs/bill/
+          server-dir: /htdocs/bill/
+          dangerous-clean-slate: true

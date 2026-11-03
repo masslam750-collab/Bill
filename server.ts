@@ -11,8 +11,21 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+function getServerPort(): number {
+  const args = process.argv.slice(2);
+  const portIndex = args.indexOf('--port');
+  if (portIndex !== -1 && args[portIndex + 1]) {
+    return parseInt(args[portIndex + 1], 10);
+  }
+  // Dev server must always run on port 3000 (Nginx listens on 8080 and proxies to 3000)
+  if (process.env.PORT && process.env.PORT !== '8080') {
+    return parseInt(process.env.PORT, 10);
+  }
+  return 3000;
+}
+
 const app = express();
-const port = parseInt(process.env.PORT || '3000', 10);
+const port = getServerPort();
 const isProduction = process.env.NODE_ENV === 'production';
 
 // Enable Gzip/Deflate compression for fast loading on 3G/4G mobile networks
@@ -939,9 +952,12 @@ app.post('/api/bill/inquiry', async (req: Request, res: Response) => {
  * Downloads complete self-contained standalone index.html ready for htdocs/bill/
  */
 app.get('/api/download-index-html', (_req: Request, res: Response) => {
+  const publicIndexPath = path.join(__dirname, 'public/index.html');
   const filePath = path.join(__dirname, 'public/standalone_bill_index.html');
   const distPath = path.join(__dirname, 'dist/standalone/index.html');
-  const target = fs.existsSync(filePath) ? filePath : (fs.existsSync(distPath) ? distPath : null);
+  const target = fs.existsSync(publicIndexPath) 
+    ? publicIndexPath 
+    : (fs.existsSync(filePath) ? filePath : (fs.existsSync(distPath) ? distPath : null));
 
   if (target) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -1353,8 +1369,16 @@ async function startServer() {
     });
   }
 
-  app.listen(port, '0.0.0.0', () => {
+  const server = app.listen(port, '0.0.0.0', () => {
     console.log(`Server listening on port ${port} (PayPro Bridge ready at /api/paypro/*)`);
+  });
+
+  server.on('error', (err: any) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`Port ${port} is in use. Attempting to recover...`);
+    } else {
+      console.error('Server error:', err);
+    }
   });
 }
 

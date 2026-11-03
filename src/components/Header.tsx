@@ -133,8 +133,9 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           </div>
 
-          {/* Zone 3: Language & Guide Action */}
+          {/* Zone 3: Language & Guide Actions */}
           <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+
             <button
               onClick={onToggleLang}
               className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
